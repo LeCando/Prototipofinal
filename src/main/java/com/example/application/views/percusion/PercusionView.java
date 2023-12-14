@@ -2,11 +2,11 @@ package com.example.application.views.percusion;
 
 import com.example.Utils.Util;
 import com.example.application.views.MainLayout;
-import com.example.application.views.nuevoinstrumento.NuevoInstrumentoView;
 import com.example.models.Cuerda;
 import com.example.models.Percusion;
 import com.example.models.Producto;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -16,11 +16,9 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import com.vaadin.flow.theme.material.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,26 +28,30 @@ import java.util.List;
 @Uses(Icon.class)
 public class PercusionView extends Composite<VerticalLayout> {
 
-    public PercusionView() {
-        VerticalLayout layoutColumn2 = new VerticalLayout();
-        HorizontalLayout layoutRow = new HorizontalLayout();
-        TextField textField = new TextField();
-        TextField textField2 = new TextField();
-        HorizontalLayout layoutRow2 = new HorizontalLayout();
-        TextField textField3 = new TextField();
-        TextField textField4 = new TextField();
-        HorizontalLayout layoutRow3 = new HorizontalLayout();
-        TextField textField5 = new TextField();
-        TextField textField6 = new TextField();
-        HorizontalLayout layoutRow4 = new HorizontalLayout();
-        TextField textField7 = new TextField();
-        ComboBox comboBox = new ComboBox();
-        ComboBox comboBox2 = new ComboBox();
-        HorizontalLayout layoutRow5 = new HorizontalLayout();
-        Button guardar = new Button();
-        Button buttonSecondary = new Button();
+    private Percusion percusionEditable;
+    VerticalLayout layoutColumn2 = new VerticalLayout();
+    HorizontalLayout layoutRow = new HorizontalLayout();
+    TextField textField = new TextField();
+    TextField textField2 = new TextField();
+    HorizontalLayout layoutRow2 = new HorizontalLayout();
+    TextField textField3 = new TextField();
+    TextField textField4 = new TextField();
+    HorizontalLayout layoutRow3 = new HorizontalLayout();
+    TextField textField5 = new TextField();
+    TextField textField6 = new TextField();
+    HorizontalLayout layoutRow4 = new HorizontalLayout();
+    TextField textField7 = new TextField();
+    ComboBox comboBox = new ComboBox();
+    ComboBox comboBox2 = new ComboBox();
+    HorizontalLayout layoutRow5 = new HorizontalLayout();
+    Button guardar = new Button();
+    Button cancelar = new Button();
 
-        Binder<Percusion> binder = new Binder<>(Percusion.class);
+       public PercusionView() {
+           Producto producto = Util.getProductoEditable();
+           if(producto != null) {
+               rellenarFormularioConDatosProducto(producto);
+           }
 
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
@@ -149,23 +151,32 @@ public class PercusionView extends Composite<VerticalLayout> {
             SampleItem selectedItem2 = (SampleItem) comboBox2.getValue();
             String gama = selectedItem2 != null ? selectedItem2.label() : null;
 
-            // Crear una nueva instancia de Producto
+                if (percusionEditable == null) {
+                    percusionEditable = new Percusion();
 
-            Percusion percusion = new Percusion();
+                    // Validar que los campos no estén vacíos antes de guardar
 
-            // Validar que los campos no estén vacíos antes de guardar
+                    percusionEditable.setNombre(nombre);
+                    percusionEditable.setCodigo(codigo);
+                    percusionEditable.setPrecio(precio);
+                    percusionEditable.setStock(stock);
+                    percusionEditable.setMarca(marca);
+                    percusionEditable.setColor(color);
+                    percusionEditable.setMaterial(material);
+                    percusionEditable.setTipo(tipo);
+                    percusionEditable.setCalidad(gama);
+                    percusionEditable.setCategoria("Percusion");
 
-            percusion.setNombre(nombre);
-            percusion.setCodigo(codigo);
-            percusion.setPrecio(precio);
-            percusion.setStock(stock);
-            percusion.setMarca(marca);
-            percusion.setColor(color);
-            percusion.setMaterial(material);
-            percusion.setTipo(tipo);
-            percusion.setCalidad(gama);
 
-            Util.listaProducto.add(percusion);
+
+                }
+                if (Util.listaProducto.contains(producto)) {
+                    Util.listaProducto.remove(producto);
+                    Util.listaProducto.add(percusionEditable);
+                }else {
+                    Util.listaProducto.add(percusionEditable);
+                }
+                getUI().ifPresent(ui -> ui.navigate("instrumento"));
 
             // Navegar a la vista de productos después de guardar
             getUI().ifPresent(ui -> ui.navigate("instrumento"));
@@ -176,8 +187,11 @@ public class PercusionView extends Composite<VerticalLayout> {
 
         });
 
-        buttonSecondary.setText("Cancelar");
-        buttonSecondary.setWidth("min-content");
+        cancelar.setText("Cancelar");
+        cancelar.setWidth("min-content");
+           cancelar.addClickListener(event -> {
+               UI.getCurrent().navigate("instrumento");
+           });
         getContent().add(layoutColumn2);
         layoutColumn2.add(layoutRow);
         layoutRow.add(textField);
@@ -194,7 +208,7 @@ public class PercusionView extends Composite<VerticalLayout> {
         layoutColumn2.add(comboBox2);
         layoutColumn2.add(layoutRow5);
         layoutRow5.add(guardar);
-        layoutRow5.add(buttonSecondary);
+        layoutRow5.add(cancelar);
     }
 
     record SampleItem(String value, String label, Boolean disabled) {
@@ -202,19 +216,49 @@ public class PercusionView extends Composite<VerticalLayout> {
 
     private void setComboBoxSampleData(ComboBox comboBox) {
         List<SampleItem> sampleItems = new ArrayList<>();
-        sampleItems.add(new SampleItem("alta", "Alta", null));
-        sampleItems.add(new SampleItem("media", "Media", null));
-        sampleItems.add(new SampleItem("baja", "Baja", Boolean.TRUE));
+        sampleItems.add(new SampleItem("acustico", "Acustico", null));
+        sampleItems.add(new SampleItem("electrico", "Electrico", null));
         comboBox.setItems(sampleItems);
         comboBox.setItemLabelGenerator(item -> ((SampleItem) item).label());
     }
 
     private void setComboBox2SampleData(ComboBox comboBox2) {
         List<SampleItem> sampleItems = new ArrayList<>();
-        sampleItems.add(new SampleItem("acustico", "Acustico", null));
-        sampleItems.add(new SampleItem("electrico", "Electrico", null));
+        sampleItems.add(new SampleItem("alta", "Alta", null));
+        sampleItems.add(new SampleItem("media", "Media", null));
+        sampleItems.add(new SampleItem("baja", "Baja", Boolean.TRUE));
         comboBox2.setItems(sampleItems);
         comboBox2.setItemLabelGenerator(item -> ((SampleItem) item).label());
     }
+    public void setPercusionEditable(Percusion percusion) {
+        this.percusionEditable = percusion;
+        rellenarFormularioConDatos();
+
+    }
+    private void rellenarFormularioConDatos() {
+        if (percusionEditable != null) {
+            textField.setValue(percusionEditable.getNombre());
+            textField2.setValue(percusionEditable.getCodigo());
+            textField3.setValue(String.valueOf(percusionEditable.getPrecio()));
+            textField4.setValue(String.valueOf(percusionEditable.getStock()));
+            textField5.setValue(percusionEditable.getMarca());
+            textField6.setValue(percusionEditable.getColor());
+
+
+        }
+    }
+
+    private void rellenarFormularioConDatosProducto( Producto producto) {
+
+        textField.setValue(producto.getNombre());
+        textField2.setValue(producto.getCodigo());
+        textField3.setValue(String.valueOf(producto.getPrecio()));
+        textField4.setValue(String.valueOf(producto.getStock()));
+        textField5.setValue(producto.getMarca());
+        textField6.setValue(producto.getColor());
+
+
+    }
+
 
 }

@@ -2,7 +2,13 @@ package com.example.application.views.instrumento;
 
 import com.example.Utils.Util;
 import com.example.application.views.MainLayout;
+import com.example.application.views.cuerda.CuerdaView;
+import com.example.application.views.percusion.PercusionView;
+import com.example.application.views.viento.VientoView;
+import com.example.models.Cuerda;
+import com.example.models.Percusion;
 import com.example.models.Producto;
+import com.example.models.Viento;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -11,6 +17,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
@@ -40,14 +47,14 @@ public class InstrumentoView extends Composite<VerticalLayout> {
 
         Grid<Producto> grid = new Grid<>(Producto.class, false);
 
-        grid.addColumn(Producto::getCategoria).setHeader("Categoria").setAutoWidth(true);
-        grid.addColumn(Producto::getNombre).setHeader("Nombre").setAutoWidth(true);
-        grid.addColumn(Producto::getCodigo).setHeader("Codigo").setAutoWidth(true);
-        grid.addColumn(Producto::getPrecio).setHeader("Precio").setAutoWidth(true);
-        grid.addColumn(Producto::getStock).setHeader("Stock").setAutoWidth(true);
-        grid.addColumn(Producto::getMarca).setHeader("Marca").setAutoWidth(true);
-        grid.addColumn(Producto::getCalidad).setHeader("Gama").setAutoWidth(true);
-        grid.addColumn(Producto::getTipo).setHeader("Tipo").setAutoWidth(true);
+        grid.addColumn(Producto::getCategoria).setHeader("Categoria").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getNombre).setHeader("Nombre").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getCodigo).setHeader("Codigo").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getPrecio).setHeader("Precio").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getStock).setHeader("Stock").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getMarca).setHeader("Marca").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getCalidad).setHeader("Gama").setSortable(true).setAutoWidth(true);
+        grid.addColumn(Producto::getTipo).setHeader("Tipo").setSortable(true).setAutoWidth(true);
 
         grid.addColumn(
                 new ComponentRenderer<>(producto -> {
@@ -65,8 +72,36 @@ public class InstrumentoView extends Composite<VerticalLayout> {
                     botonEditar.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
                     botonEditar.setIcon(new Icon(VaadinIcon.EDIT));
                     botonEditar.addClickListener(e -> {
-                        // Aquí el código para editar el producto
-                        // Por ejemplo, abrir un formulario de edición
+
+                        Util.setProductoEditable(producto);
+                        switch (producto.getCategoria()){
+                            case "Cuerda":
+                                CuerdaView cuerdaView = new CuerdaView();
+                                cuerdaView.setCuerdaEditable((Cuerda) producto);
+                                Util.setProductoEditable(producto);
+                                UI.getCurrent().navigate("cuerda");
+                                break;
+                            case "Percusion":
+                                PercusionView percusionView = new PercusionView();
+                               percusionView.setPercusionEditable((Percusion) producto);
+                                Util.setProductoEditable(producto);
+                                UI.getCurrent().navigate("percusion");
+                                break;
+                            case "Viento":
+                                VientoView vientoView = new VientoView();
+                                vientoView.setVientoEditable((Viento) producto);
+                                Util.setProductoEditable(producto);
+                                UI.getCurrent().navigate("viento");
+                                break;
+                            default:
+                                Notification.show("Categoría no reconocida: " + producto.getCategoria());
+                                break;
+
+                        }
+
+
+
+
                     });
 
                     // Botón para ver
@@ -79,7 +114,7 @@ public class InstrumentoView extends Composite<VerticalLayout> {
                     });
 
                     // Añadir los botones a un layout horizontal
-                    HorizontalLayout buttons = new HorizontalLayout(botonBorrar, botonVer);
+                    HorizontalLayout buttons = new HorizontalLayout(botonBorrar,botonEditar, botonVer);
                     return buttons;
                 })).setHeader("Manage").setAutoWidth(true);
 
@@ -88,4 +123,5 @@ public class InstrumentoView extends Composite<VerticalLayout> {
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         getContent().add(buttonPrimary,grid);
     }
+
 }
